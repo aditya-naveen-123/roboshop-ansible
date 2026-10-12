@@ -1,0 +1,88 @@
+- name: configuring catalogue service
+  hosts: local
+  become: yes
+  tasks:
+  - name: Disabling node js different version
+    command: dnf module disable nodejs -y
+
+  - name: enabling node js verison 20
+    command: dnf module enable nodejs:20 -y
+
+  - name: Installing node js version 20
+    package:
+      name: nodejs 
+      state: present
+
+  - name: creating roboshop system user
+    user:
+      name: roboshop
+      system: true
+      shell: /sbin/nologin
+      home: /app
+      comment: "roboshop system user"
+
+  - name: create an app directory
+    file:
+      path: /app
+      state: absent
+
+  - name: delete code zip file in temp
+    file:
+      path: /tmp/catalogue.zip
+      state: absent
+
+  - name: create an app directory
+    file:
+      path: /app
+      state: directory
+
+  - name: create code directory
+    get_url:
+      url: "https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip"
+      dest: "/tmp/catalogue.zip"
+
+  - name: unzip downloaded code
+    unarchive:
+      src: /tmp/catalogue.zip
+      dest: /app
+      remote_src: true
+
+  - name: installing npm dependencies
+    community.general.npm:
+      path: /app
+      state: present
+
+  - name: creating catalogue service file
+    template:
+      src: catalogue.service.j2
+      dest: /etc/systemd/system/catalogue.service
+
+  - name: copying mongo repo to the destination
+    copy: 
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: install mongodb client
+    package:
+      name: mongodb-mongosh
+      state: present
+
+  - name: catalogue schema exists or not
+    shell: mongosh --host "{{MONGODB_SERVER_IP}}" --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+    register: catalogue_output
+
+  - name: load products into db
+    shell: mongosh --host "{{MONGODB_SERVER_IP}}" </app/db/master-data.js
+    when: catalogue_output.stdout | int < 0
+    
+
+  - name: mongo db deamon reload
+    systemd_service:
+      name: catalogue
+      daemon_reload: true
+
+  - name: start and enable catalogue service
+    service:
+      name: catalogue
+      state: restarted
+      enabled: yes
