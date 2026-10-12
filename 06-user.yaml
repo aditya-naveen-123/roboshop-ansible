@@ -1,0 +1,10 @@
+- name: configuring user service
+  hosts: user
+  become: yes
+  tasks:
+  - name: Enabling node js version 20
+    command: dnf module enable nodejs:20 -y
+  - name: Intsalling node js
+    package:
+      name: nodejs
+      state: present

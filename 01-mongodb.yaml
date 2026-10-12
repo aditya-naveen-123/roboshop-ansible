@@ -15,7 +15,7 @@
 
   - name: updating connections from all IP
     replace:
-      path: /etc/yum.repos.d/mongo.repo
+      path: /etc/mongod.conf
       regexp: 127.0.0.1
       replace: 0.0.0.0
   - name: starting and enabling mongodb
