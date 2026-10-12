@@ -20,7 +20,7 @@
 
   - name: setting up password and permissions
     community.rabbitmq.rabbitmq_user:
-      user: "roboshop "
+      user: "roboshop"
       password: "roboshop123"
       permissions:
       - vhost: "/"
