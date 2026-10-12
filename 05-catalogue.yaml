@@ -21,7 +21,7 @@
       home: /app
       comment: "roboshop system user"
 
-  - name: create an app directory
+  - name: remove an app directory
     file:
       path: /app
       state: absent
