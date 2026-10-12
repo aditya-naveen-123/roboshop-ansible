@@ -1,5 +1,5 @@
 - name: configuring catalogue service
-  hosts: local
+  hosts: catalogue
   become: yes
   tasks:
   - name: Disabling node js different version
