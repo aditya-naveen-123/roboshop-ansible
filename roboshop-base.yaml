@@ -2,7 +2,7 @@
   hosts: local
   connection: local
   vars:
-    instances: ["mongodb", "catalogue", "fronend", "redis", "user", "cart", "shipping", "mysql", "rabbitmq", "payment"]
+    instances: ["mongodb", "catalogue", "frontend", "redis", "user", "cart", "shipping", "mysql", "rabbitmq", "payment"]
     image_id: "ami-0220d79f3f480ecf5"
     domain_name: "adityabuilds.fun"
   tasks:
