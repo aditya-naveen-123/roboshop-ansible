@@ -1,5 +1,5 @@
 - name: configuring user service
-  hosts: user
+  hosts: cart
   become: yes
   tasks:
   - name: Enabling node js version 20
