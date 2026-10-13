@@ -7,3 +7,5 @@ CART_SERVER_IPADDRESS: cart.adityabuilds.fun
 MYSQL_SERVER_IP_ADDRESS: mysql.adityabuilds.fun
 USER_SERVER_IPADDRESS: user.adityabuilds.fun
 RABBITMQ_SERVER_IP_ADDRESS: rabbitmq.adityabuilds.fun
+SHIPPING_SERVER_IP_ADDRESS: shipping.adityabuilds.fun
+PAYMENT_SERVER_IP_ADDRESS: payment.adityabuilds.fun
