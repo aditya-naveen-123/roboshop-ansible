@@ -33,7 +33,7 @@
   - name: unzip downloaded code
     unarchive:
       src: /tmp/frontend.zip
-      dest: /usr/share/nginx/html 
+      dest: /usr/share/nginx/html/ 
       remote_src: true
 
   - name: delete default nginx configuring
