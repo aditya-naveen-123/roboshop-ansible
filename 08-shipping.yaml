@@ -1,0 +1,84 @@
+- name: Configuring shipping service
+  hosts: shipping
+  become: yes
+  tasks:
+  - name: install maven
+    package:
+      name: "{{item}}"
+      state: present
+    loop:
+    - maven
+    - mysql
+  - name: adding roboshop system user
+    user:
+      name: roboshop
+      system: true
+      shell: /sbin/nologin
+      home: /app
+      comment: "roboshop system user"
+
+  - name: remove an app directory
+    file:
+      path: /app
+      state: absent
+
+  - name: delete code zip file in temp
+    file:
+      path: /tmp/shipping.zip
+      state: absent
+
+  - name: create an app directory
+    file:
+      path: /app
+      state: directory
+
+  - name: create code directory
+    get_url:
+      url: "https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip "
+      dest: "/tmp/shipping.zip"
+
+  - name: unzip downloaded code
+    unarchive:
+      src: /tmp/shipping.zip
+      dest: /app
+      remote_src: true
+
+  - name: install dependencies
+    command: mvn clean package 
+    args:
+      chdir: /app
+
+  - name: moving app jar file
+    command: mv target/shipping-1.0.jar shipping.jar 
+    args:
+      chdir: /app
+
+  - name: creating cart service file
+    template:
+      src: cart.service.j2
+      dest: /etc/systemd/system/shipping.service
+
+  - name: loading data into mysql
+    ansible.mysql.mysql_db:
+      state: import
+      name: all
+      login_user: root
+      login_password: RoboShop@1
+      login_host: "{{MYSQL_SERVER_IP_ADDRESS}}"
+      target: 
+      loop:
+      - /app/db/schema.sql
+      - app/db/app-user.sql
+      - app/db/master-data.sql
+
+
+  - name: cart deamon reload
+    systemd_service:
+      name: cart
+      daemon_reload: true
+
+  - name: start and enable cart service
+    service:
+      name: cart
+      state: restarted
+      enabled: yes
