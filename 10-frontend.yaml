@@ -15,16 +15,17 @@
       path: /usr/share/nginx/html/
       state: absent
 
-  - name: create html directory
-    file:
-      path: usr/share/nginx/html/
-      state: directory
 
   - name: delete code zip file in temp
     file:
       path: /tmp/frontend.zip
       state: absent
-  
+
+  - name: create html directory
+    file:
+      path: usr/share/nginx/html/
+      state: directory
+      
   - name: download frontend code
     get_url:
       url: "https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip"
