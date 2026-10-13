@@ -65,7 +65,7 @@
       login_user: root
       login_password: RoboShop@1
       login_host: "{{MYSQL_SERVER_IP_ADDRESS}}"
-      target: 
+      target: item
       loop:
       - /app/db/schema.sql
       - app/db/app-user.sql
@@ -74,11 +74,11 @@
 
   - name: cart deamon reload
     systemd_service:
-      name: cart
+      name: shipping
       daemon_reload: true
 
   - name: start and enable cart service
     service:
-      name: cart
+      name: shipping
       state: restarted
       enabled: yes
