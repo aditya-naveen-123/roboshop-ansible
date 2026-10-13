@@ -60,16 +60,17 @@
 
   - name: loading data into mysql
     community.mysql.mysql_db:
-      state: import
-      name: all
-      login_user: root
-      login_password: RoboShop@1
-      login_host: "{{MYSQL_SERVER_IP_ADDRESS}}"
-      target: "{{item}}"
-      loop:
-        - /app/db/schema.sql
-        - app/db/app-user.sql
-        - app/db/master-data.sql
+    state: import
+    name: all
+    login_user: root
+    login_password: RoboShop@1
+    login_host: "{{ MYSQL_SERVER_IP_ADDRESS }}"
+    target: "{{ item }}"
+  loop:
+    - /app/db/schema.sql
+    - /app/db/app-user.sql
+    - /app/db/master-data.sql
+
 
 
   - name: cart deamon reload
