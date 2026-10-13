@@ -1,31 +1,27 @@
-- name: Create and manage roboshop instances
+- name: configuring creating - updating R53 records with instances creeate and delete.
   hosts: local
   connection: local
   vars:
     instances: ["mongodb", "catalogue", "frontend", "redis", "user", "cart", "shipping", "mysql", "rabbitmq", "payment"]
-    image_id: "ami-0220d79f3f480ecf5"
-    domain_name: "adityabuilds.fun"
+    project: "roboshop"
+    task_to_perform: "create"
+    image_id: ami-0220d79f3f480ecf5
+    domain_name: adityabuilds.fun
   tasks:
-  - name: create EC2 instances from list
+  - name: create instances.
     amazon.aws.ec2_instance:
-        instance_type: t3.micro
-        image_id: "{{image_id}}"
-        name: "roboshop-{{item}}"
-        security_groups:
-        - "roboshop-{{item}}"
-        - roboshop-common
+      name: "{{project}}-{{item}}"
+      instance_type: t3.micro
+      image_id: "{{ image_id }}"
+      security_groups: 
+        - "{{project}}-{{item}}"
+        - "{{project}}-common"
+      wait: false
     loop: "{{instances}}"
     register: ec2_output
+    when: task_to_perform == "create"
 
-  # - name: print output
-  #   debug:
-  #     msg: "{{ec2_output}}"\
-  # - name: create and update R53 records
-  #   debug:
-  #     msg: "Instance Name is: {{item.item}}, Private Ip: {{item.instances[0].private_ip_address}}"
-  #   loop: "{{ec2_output.results}}"
-
-  - name: create and update R53 records
+  - name: updating R53 records
     amazon.aws.route53:
       state: present
       zone: "{{domain_name}}"
@@ -33,18 +29,62 @@
       type: A
       ttl: 1
       value: "{{item.instances[0].private_ip_address}}"
-      overwrite: true
+      overwrite: yes
+      #wait: false
     loop: "{{ec2_output.results}}"
-    when: item.item != "frontend"
+    when: 
+    - item.item != 'frontend'
+    - task_to_perform == "create"
 
-  - name: Updating record for frontend
+  - name: updating R53 for frontend
     amazon.aws.route53:
       state: present
+      zone: "{{domain_name}}"
+      record: "{{item.item}}.{{domain_name}}"
+      type: A
+      ttl: 1
+      value: "{{item.instances[0].public_ip_address}}"
+      overwrite: yes
+      #wait: false
+    loop: "{{ec2_output.results}}"
+    when: 
+    - item.item == 'frontend'
+    - task_to_perform == "create"
+
+  - name: Deleting R53 record
+    amazon.aws.route53:
+      state: absent
+      zone: "{{domain_name}}"
+      record: "{{item}}.{{domain_name}}"
+      type: A
+      ttl: 1
+      overwrite: yes
+      #wait: false
+    loop: "{{instances}}"
+    when: 
+    - item != 'frontend'
+    - task_to_perform == "delete"
+
+  - name: Deleting R53 for frontend
+    amazon.aws.route53:
+      state: absent
       zone: "{{domain_name}}"
       record: "{{domain_name}}"
       type: A
       ttl: 1
-      value: "{{item.instances[0].public_ip_address}}"
-      overwrite: true
-    loop: "{{ec2_output.results}}"
-    when: item.item == "frontend"
+      overwrite: yes
+      #wait: false
+    loop: "{{instances}}"
+    when: 
+    - item == 'frontend'
+    - task_to_perform == "delete"
+
+  - name: Deleting Ec2 instances
+    amazon.aws.ec2_instance:
+      state: absent
+      name: "{{project}}-{{item}}"
+    loop: "{{instances}}"
+    when: task_to_perform == "delete"
+
+
+
